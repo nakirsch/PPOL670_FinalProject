@@ -58,3 +58,28 @@ crime_data_total <- rbind(crime_data22, crime_data21)
 crime_data_total <- rbind(crime_data_total, crime_data20)
 crime_data_total <- rbind(crime_data, crime_data19)
 ```
+
+
+``` {r}
+
+url <- "https://api.census.gov/data/2019/acs/acs5?get=NAME,B01003_001E&for=tract:*&in=county:*&in=state:11"
+
+dc_json <- GET(url = url)
+
+http_status(dc_json)
+
+# get the contents of the response as a text string
+dc_json <- content(dc_json, as = "text")
+# create a character matrix from the JSON
+
+dc_matrix <- fromJSON(dc_json)
+
+# turn the body of the character matrix into a tibble
+dc_data <- as_tibble(dc_matrix[2:nrow(dc_matrix), ],
+                      .name_repair = "minimal")
+# add variable names to the tibble
+names(dc_data) <- dc_matrix[1, ]
+
+dc_data
+
+```
