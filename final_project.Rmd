@@ -33,3 +33,28 @@ library(patchwork)
 
 theme_set(theme_minimal())
 ```
+
+
+
+```{r}
+library(tidyverse)
+library(sf)
+library(janitor)
+
+crime_data22 <- st_read("Crime_Incidents_in_2022.geojson") %>%
+  clean_names()
+
+crime_data21 <- st_read("Crime_Incidents_in_2021.geojson") %>%
+  clean_names()
+
+crime_data20 <- st_read("Crime_Incidents_in_2020.geojson") %>%
+  clean_names()
+
+crime_data19 <- st_read("Crime_Incidents_in_2019.geojson") %>%
+  clean_names()
+
+
+crime_data_total <- rbind(crime_data22, crime_data21)
+crime_data_total <- rbind(crime_data_total, crime_data20)
+crime_data_total <- rbind(crime_data, crime_data19)
+```
