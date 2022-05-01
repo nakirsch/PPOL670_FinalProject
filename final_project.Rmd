@@ -30,6 +30,8 @@ library(tidyverse)
 library(tidymodels)
 library(ggplot2)
 library(patchwork)
+library(httr)
+library(jsonlite)
 
 theme_set(theme_minimal())
 ```
@@ -41,22 +43,61 @@ library(tidyverse)
 library(sf)
 library(janitor)
 
-crime_data22 <- st_read("Crime_Incidents_in_2022.geojson") %>%
+crime_data22 <- st_read("data/Crime_Incidents_in_2022.geojson") %>%
   clean_names()
 
-crime_data21 <- st_read("Crime_Incidents_in_2021.geojson") %>%
+crime_data21 <- st_read("data/Crime_Incidents_in_2021.geojson") %>%
   clean_names()
 
-crime_data20 <- st_read("Crime_Incidents_in_2020.geojson") %>%
+crime_data20 <- st_read("data/Crime_Incidents_in_2020.geojson") %>%
   clean_names()
 
-crime_data19 <- st_read("Crime_Incidents_in_2019.geojson") %>%
+crime_data19 <- st_read("data/Crime_Incidents_in_2019.geojson") %>%
+  clean_names()
+
+crime_data18 <- st_read("data/Crime_Incidents_in_2018.geojson") %>%
+  clean_names()
+
+crime_data17 <- st_read("data/Crime_Incidents_in_2017.geojson") %>%
+  clean_names()
+
+crime_data16 <- st_read("data/Crime_Incidents_in_2016.geojson") %>%
+  clean_names()
+
+crime_data15 <- st_read("data/Crime_Incidents_in_2015.geojson") %>%
+  clean_names()
+
+crime_data14 <- st_read("data/Crime_Incidents_in_2014.geojson") %>%
+  clean_names()
+
+crime_data13 <- st_read("data/Crime_Incidents_in_2013.geojson") %>%
+  clean_names()
+
+crime_data12 <- st_read("data/Crime_Incidents_in_2012.geojson") %>%
+  clean_names()
+
+crime_data11 <- st_read("data/Crime_Incidents_in_2011.geojson") %>%
+  clean_names()
+
+crime_data10 <- st_read("data/Crime_Incidents_in_2010.geojson") %>%
   clean_names()
 
 
-crime_data_total <- rbind(crime_data22, crime_data21)
-crime_data_total <- rbind(crime_data_total, crime_data20)
-crime_data_total <- rbind(crime_data, crime_data19)
+
+
+crime_data_2010s <- rbind(crime_data19, crime_data18)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data17)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data16)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data15)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data14)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data13)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data12)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data11)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data10)
+
+
+
+
 ```
 
 
