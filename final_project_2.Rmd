@@ -1,0 +1,282 @@
+---
+title: "Final Project"
+author: "Vanaaisha and Nathalie"
+date: "5/2/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+```{r include = FALSE}
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+})
+```
+
+### PPOL 670 | Final Project
+
+This assignment is stored on the following [Github repository](https://github.com/nakirsch/PPOL670_FinalProject). 
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(patchwork)
+library(sf)
+library(janitor)
+library(lubridate)
+library(grid)
+library(igraph)
+library(ggraph)
+library(gifski)
+library(gganimate)
+
+theme_set(theme_minimal())
+```
+
+[Explain where geojson files come from]
+
+```{r}
+#Load in data
+crime_data22 <- st_read("data/Crime_Incidents_in_2022.geojson") %>%
+  clean_names()
+
+crime_data21 <- st_read("data/Crime_Incidents_in_2021.geojson") %>%
+  clean_names()
+
+crime_data20 <- st_read("data/Crime_Incidents_in_2020.geojson") %>%
+  clean_names()
+
+crime_data19 <- st_read("data/Crime_Incidents_in_2019.geojson") %>%
+  clean_names()
+
+crime_data18 <- st_read("data/Crime_Incidents_in_2018.geojson") %>%
+  clean_names()
+
+crime_data17 <- st_read("data/Crime_Incidents_in_2017.geojson") %>%
+  clean_names()
+
+crime_data16 <- st_read("data/Crime_Incidents_in_2016.geojson") %>%
+  clean_names()
+
+crime_data15 <- st_read("data/Crime_Incidents_in_2015.geojson") %>%
+  clean_names()
+
+crime_data14 <- st_read("data/Crime_Incidents_in_2014.geojson") %>%
+  clean_names()
+
+crime_data13 <- st_read("data/Crime_Incidents_in_2013.geojson") %>%
+  clean_names()
+
+crime_data12 <- st_read("data/Crime_Incidents_in_2012.geojson") %>%
+  clean_names()
+
+crime_data11 <- st_read("data/Crime_Incidents_in_2011.geojson") %>%
+  clean_names()
+
+crime_data10 <- st_read("data/Crime_Incidents_in_2010.geojson") %>%
+  clean_names()
+
+#Combine data
+crime_data_total <- rbind(crime_data22, crime_data21)
+crime_data_total <- rbind(crime_data_total, crime_data20)
+crime_data_total <- rbind(crime_data_total, crime_data19)
+
+crime_data_2010s <- rbind(crime_data19, crime_data18)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data17)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data16)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data15)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data14)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data13)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data12)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data11)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data10)
+```
+
+(Explain converting dates/creating count variable)
+```{r}
+crime_data_total_2 <- crime_data_total %>%
+  separate(
+    col = report_dat,
+    into = c("date", "time"),
+    sep = " ",
+    remove = FALSE
+  ) %>%
+  mutate(year = year(date),
+         month = month(date),
+         day = day(date),
+         ymd = paste(year, month, day, sep = "-"),
+         date2 = as.Date(ymd)) 
+
+crime_count <- crime_data_total_2 %>%
+  filter(month < 4,
+         !is.na(ward))%>%
+  group_by(ward, year) %>%
+  summarize(count = n()) %>%
+  st_drop_geometry() 
+
+crime_graph_data <- crime_data_total_2 %>%
+ group_by(date2) %>%
+ summarize(count = n()) %>%
+  select(-geometry)
+
+```
+
+### Exploratory Analysis of Crime in DC
+```{r}
+#Type of Crime Committed by Crime Count (per Day) 
+crime_data_total_2 %>%
+  filter(!is.na(ward)) %>%
+  ggplot(aes(offense, fill = ward)) +
+  geom_bar() +
+  labs(
+    x = "Type of Criminal Offense",
+    y = "Crime Count (per Day)",
+    fill = "Ward",
+    title = "Number of Crimes by Type of Offense in Washington, DC",
+    caption = "By Ward "
+  )
+
+# Shift Crime Report by Crime Count (per Day)
+crime_data_total_2 %>%
+  filter(!is.na(ward)) %>%
+  ggplot(aes(shift)) +
+  geom_bar() +
+  labs(
+    x = "Shift Crime Reported",
+    y = "Crime Count (per Day)",
+    title = "Number of Crimes by Shift in Washington, DC"
+  )
+
+```
+
+
+```{r}
+#Number of crimes in January Through March
+crime_count %>%
+  ggplot(mapping = aes(x = ward, y = count, fill = ward, ymax = 2000)) +
+  geom_col() +
+  facet_wrap(~year) + 
+  geom_text(aes(label = count, vjust = -0.25)) +
+  labs (
+    title = "Number of Crimes in January Through March",
+    subtitle = "By Ward",
+    x = "Ward",
+    y = "Number of Crimes",
+    caption = "[Dataset Name]",
+  ) + 
+  scale_fill_discrete(name = "Ward") +
+  theme(panel.spacing = unit(2, "lines"),
+        strip.text = element_text(size = 13))
+
+#Animated plot for change in crime over time
+crime_data_2010s_2 <- crime_data_2010s %>%
+  separate(
+    col = report_dat,
+    into = c("date", "time"),
+    sep = " ",
+    remove = FALSE
+  ) %>%
+  mutate(year = year(date),
+         month = month(date)) 
+
+crime_count_2010s <- crime_data_2010s_2 %>%
+  filter(!is.na(ward))%>%
+  group_by(ward, year) %>%
+  summarize(count = n()) %>%
+  st_drop_geometry()
+
+crime_over_time <- crime_count_2010s %>%
+  ggplot(mapping = aes(x = ward, y = count, fill = ward)) +
+  geom_col() +
+  labs (
+    title = "Number of Crimes in {frame_time}",
+    subtitle = "By Ward",
+    x = "Ward",
+    y = "Number of Crimes",
+    caption = "[Dataset Name]",
+  ) + 
+  scale_fill_discrete(name = "Ward") +
+  transition_time(as.integer(year)) +
+  ease_aes('linear')
+
+#animate graph and save as a gif
+animate(crime_over_time, nframes = 10, duration = 10, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
+
+anim_save("crime_over_time_gif.gif")
+```
+
+
+```{r}
+holiday_dates = c(
+  "2019-11-26",
+  '2019-12-24',
+  '2019-12-25',
+  '2019-12-31',
+  '2020-01-01',
+  "2020-11-25",
+  '2020-12-24',
+  '2020-12-25',
+  '2020-12-31',
+  '2021-01-01'  
+)
+holiday_names = c(
+  'Thanksgiving 2019',
+  'Christmas Eve 2019',
+  'Christmas Day 2019',
+  'New Years Eve 2019',
+  'New Years Day 2020',
+  'Thanksgiving 2020',
+  'Christmas Eve 2020',
+  'Christmas Day 2020',
+  'New Years Eve 2020',
+  'New Years Day 2021'
+)
+
+holidays = data.frame(date2 = as.Date(holiday_dates), Holiday = holiday_names) 
+
+crime_graph_data <- left_join(crime_graph_data, holidays, by = "date2")
+
+#Crime Count during the Holidays (2020 - 2021) 
+crime_graph_data %>%
+  filter("2020-11-14" < date2) %>%
+  filter( date2 < "2021-01-16") %>%
+  ggplot(aes(date2, count, label = date2, color = count < 53 & date2 < "2021-01-02")) +
+  geom_point() + 
+  #geom_text(aes(label=ifelse(count < 53, as.numeric(count), " ")), vjust = -1) +
+  labs(
+    x = "Date",
+    y = "Number of Crimers (per day) ",
+    title = "Crime Count during the Holidays in Washington, DC (Nov 2020 - Jan 2021)"
+  ) +
+ scale_x_date(breaks = "5 days",
+             date_labels = "%b %d %Y") + 
+  theme(legend.position="none") 
+
+ 
+#Crime Count during the Holidays (2021 - 2022)
+crime_graph_data %>%
+  filter("2021-11-15" < date2) %>%
+  filter( date2 < "2022-01-16") %>%
+  ggplot(aes(date2, count, label = date2, color = count < 53 & date2 < "2022-01-02")) +
+  geom_point() + 
+  #geom_text(aes(label=ifelse(count < 53, as.numeric(count), " ")), vjust = -1) + 
+  labs(
+    x = "Date",
+    y = "Number of Crimers (per day) ",
+    title = "Crime Count during the Holidays in Washington, DC (Nov 2021 - Jan 2022)"
+  ) + 
+ scale_x_date(breaks = "5 days",
+             date_labels = "%b %d %Y") + 
+  theme(legend.position="none")
+
+```
+
+
+
+
