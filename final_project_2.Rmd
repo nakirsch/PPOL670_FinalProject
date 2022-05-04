@@ -156,13 +156,12 @@ crime_count_2010s <- crime_data_2010s_2 %>%
 
 ```{r}
 #Type of Crime Committed by Crime Count (per Day) 
-#UPDATE TO SAY YEARS OF DATA, FIX X-AXIS LABELS
 crime_data_total_2 %>%
   filter(!is.na(ward)) %>%
   ggplot(aes(offense, fill = ward)) +
   geom_bar() +
   labs(
-    title = "Number of Crimes by Type of Offense in Washington, DC",
+    title = "Number of Crimes by Type of Offense in Washington, DC (2019 - 2022)",
     subtitle = "By Ward",
     x = "Type of Criminal Offense",
     y = "Crime Count (per Day)",
@@ -175,13 +174,12 @@ crime_data_total_2 %>%
 
 ```{r}
 # Shift Crime Report by Crime Count (per Day)
-#UPDATE TO SAY YEARS OF DATA
 crime_data_total_2 %>%
   filter(!is.na(ward)) %>%
   ggplot(aes(shift)) +
   geom_bar() +
   labs(
-    title = "Number of Crimes by Shift in Washington, DC",
+    title = "Number of Crimes by Shift in Washington, DC (2019 - 2022)",
     x = "Shift Crime Reported",
     y = "Crime Count (per Day)",
     caption = "[Dataset Name]"
@@ -212,34 +210,6 @@ crime_count %>%
 [Explain graphs]
 
 ```{r}
-holiday_dates = c(
-  "2019-11-26",
-  '2019-12-24',
-  '2019-12-25',
-  '2019-12-31',
-  '2020-01-01',
-  "2020-11-25",
-  '2020-12-24',
-  '2020-12-25',
-  '2020-12-31',
-  '2021-01-01'  
-)
-
-holiday_names = c(
-  'Thanksgiving 2019',
-  'Christmas Eve 2019',
-  'Christmas Day 2019',
-  'New Years Eve 2019',
-  'New Years Day 2020',
-  'Thanksgiving 2020',
-  'Christmas Eve 2020',
-  'Christmas Day 2020',
-  'New Years Eve 2020',
-  'New Years Day 2021'
-)
-
-holidays = data.frame(date2 = as.Date(holiday_dates), Holiday = holiday_names) 
-
 crime_graph_data <- left_join(crime_graph_data, holidays, by = "date2")
 
 #Crime Count during the Holidays (2020 - 2021) 
@@ -248,11 +218,11 @@ crime_graph_data %>%
   filter( date2 < "2021-01-16") %>%
   ggplot(aes(date2, count, label = date2, color = count < 53 & date2 < "2021-01-02")) +
   geom_point() + 
-  #geom_text(aes(label=ifelse(count < 53, as.numeric(count), " ")), vjust = -1) +
   labs(
     x = "Date",
     y = "Number of Crimers (per day) ",
-    title = "Crime Count during the Holidays in Washington, DC (Nov 2020 - Jan 2021)"
+    title = "Crime Count during the Holidays in Washington, DC (Nov 2020 - Jan 2021)",
+    caption = "[Dataset Name]"
   ) +
  scale_x_date(breaks = "5 days",
              date_labels = "%b %d %Y") + 
@@ -265,11 +235,11 @@ crime_graph_data %>%
   filter( date2 < "2022-01-16") %>%
   ggplot(aes(date2, count, label = date2, color = count < 53 & date2 < "2022-01-02")) +
   geom_point() + 
-  #geom_text(aes(label=ifelse(count < 53, as.numeric(count), " ")), vjust = -1) + 
   labs(
     x = "Date",
     y = "Number of Crimers (per day) ",
-    title = "Crime Count during the Holidays in Washington, DC (Nov 2021 - Jan 2022)"
+    title = "Crime Count during the Holidays in Washington, DC (Nov 2021 - Jan 2022)",
+    caption = "[Dataset Name]"
   ) + 
  scale_x_date(breaks = "5 days",
              date_labels = "%b %d %Y") + 
@@ -300,6 +270,70 @@ crime_over_time <- crime_count_2010s %>%
 #animate graph
 animate(crime_over_time, nframes = 10, duration = 10, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
 #anim_save("crime_over_time_gif.gif")
+```
+
+[Explain graph]
+```{r}
+# Reading in DC Tracts data
+dctracts <- st_read("Census_Tracts_in_2010.geojson") %>%
+  st_set_crs(value = 4326) %>%
+  clean_names()
+
+# Wrangling to create crime rate, crime count, etc.
+crime_merged <- st_join(dctracts, crime_data_total_2, join = st_contains, left = TRUE)
+
+crime_merged_agg <- crime_merged %>%
+  group_by(tract, year) %>%
+  summarize(count = n(),
+            population = mean(p0030001),
+            year = mean(year)) %>%
+  mutate(crimerate = count/population*1000)
+
+# Visualizations
+pop_map <- ggplot() +
+   geom_sf(
+    data = dctracts,
+    aes(fill = p0010001)
+) +
+  scale_fill_gradient(low = "blue",
+                      high = "red") +
+  labs(title = "Tract population in 2019",
+       caption = "[Dataset Name]") +
+  theme_void()
+
+crimerate_map <- ggplot() +
+   geom_sf(
+    data = crime_merged_agg %>% filter(tract != "006202"),
+    aes(fill = crimerate),
+    color = "white"
+) +
+  scale_fill_gradient2() +
+  facet_wrap(~year) +
+  labs(title = "Crime rate in census tracts by year",
+       caption = "[Dataset Name]") +
+  theme_void()
+
+crime_police21 <- ggplot() +
+  geom_sf(
+    data = dctracts,
+    fill = "white"
+) +
+  geom_sf(
+    data = crime_data_total_2 %>% filter(year == 2021),
+    color = "light pink",
+    alpha = 0.05
+) +
+  geom_sf(
+    data = policestations,
+    color = "blue"
+  ) +
+  theme_void()
+
+pop_map
+
+crimerate_map
+
+crime_police21
 ```
 
 
