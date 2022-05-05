@@ -290,6 +290,7 @@ crime_merged_agg <- crime_merged %>%
   mutate(crimerate = count/population*1000)
 
 # Visualizations
+
 pop_map <- ggplot() +
    geom_sf(
     data = dctracts,
@@ -297,9 +298,11 @@ pop_map <- ggplot() +
 ) +
   scale_fill_gradient(low = "blue",
                       high = "red") +
-  labs(title = "Tract population in 2019",
-       caption = "[Dataset Name]") +
+  labs(title = "DC population is highly concentrated in a few tracts",
+       caption = "DC Tract data obtained from the American Community Survey 5-year estimates") +
   theme_void()
+  
+  pop_map
 
 crimerate_map <- ggplot() +
    geom_sf(
@@ -309,9 +312,11 @@ crimerate_map <- ggplot() +
 ) +
   scale_fill_gradient2() +
   facet_wrap(~year) +
-  labs(title = "Crime rate in census tracts by year",
-       caption = "[Dataset Name]") +
+  labs(title = "Crime rates distributions across tracts have remained consistent between 2019 - 2022",
+       caption = "DC Crime Incident data reported to DC MPD") +
   theme_void()
+  
+  crimerate_map
 
 crime_police21 <- ggplot() +
   geom_sf(
@@ -327,11 +332,9 @@ crime_police21 <- ggplot() +
     data = policestations,
     color = "blue"
   ) +
+  labs(title = "Most crimes were concentrated around police stations in 2021",
+       caption = "DC Crime Incident and Police Station data reported to DC MPD") +
   theme_void()
-
-pop_map
-
-crimerate_map
 
 crime_police21
 ```
