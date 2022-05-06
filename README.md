@@ -2,6 +2,9 @@ PPOL 670 Final Project
 By Lucas Fox, Nathalie Kirsch, Vanaaisha Pamnani, and Cuong Pham Vu
 https://github.com/nakirsch/PPOL670_FinalProject
 
+Github Pages:
+https://nakirsch.github.io/PPOL670_FinalProject/data_visualizations
+https://nakirsch.github.io/PPOL670_FinalProject/predictive_modeling
 
 This project uses data from Open Data DC on crime incidents in DC from 2010 to 
 2022, as well as demographic data from the Census's 5-year surveys, to study 
