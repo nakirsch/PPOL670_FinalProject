@@ -3,6 +3,7 @@ By Lucas Fox, Nathalie Kirsch, Vanaaisha Pamnani, and Cuong Pham Vu
 https://github.com/nakirsch/PPOL670_FinalProject
 
 Github Pages:
+https://nakirsch.github.io/PPOL670_FinalProject
 https://nakirsch.github.io/PPOL670_FinalProject/data_visualizations
 https://nakirsch.github.io/PPOL670_FinalProject/predictive_modeling
 
