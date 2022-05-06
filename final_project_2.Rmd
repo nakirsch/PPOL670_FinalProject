@@ -1,7 +1,7 @@
 ---
 title: "Final Project"
 author: "Vanaaisha and Nathalie"
-date: "5/3/2022"
+date: "5/6/2022"
 output: html_document
 urlcolor: blue
 editor_options: 
@@ -25,7 +25,19 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 
 This assignment is stored on the following [Github repository](https://github.com/nakirsch/PPOL670_FinalProject). 
 
-This project uses data from Open Data DC on crime incidents in DC from 2010 to 2022, as well as demographic data from the Census's 5-year surveys, to study how DC's crime rates and types of crime have changed over the course of the COVID-19 pandemic and over the ten years leading up to the pandemic. In this analysis, we first explore DC's crime counts and rates through data visualization, then use [machine learning technique] to predict [fill in].
+This project uses data from Open Data DC on crime incidents in DC from 2010 to 
+2022, as well as demographic data from the Census's 5-year surveys, to study 
+how DC's crime rates and types of crime have changed over the course of the 
+COVID-19 pandemic and over the ten years leading up to the pandemic. In this 
+analysis, we first explore DC's crime counts and rates through data 
+visualization, then use lasso regression to predict the number of crimes in DC
+in a given year. 
+
+Our data visualizations and predictive modeling can provide policymakers a
+better understanding of the types, frequency, and patterns of crimes reported 
+in DC. More importantly, it provides an in-depth look at what factors contribute
+to crime in DC both pre and post pandemic, informing policymakers on potential
+ways to address crimes in DC. 
 
 ```{r}
 library(tidyverse)
@@ -45,7 +57,13 @@ theme_set(theme_minimal())
 ```
 
 ### Creating Datasets on Crime Incidents
-[Explain where geojson files come from]
+The geojson files come from Open Data DC, the District of Columbia's open source
+database. From this database, we gathered DC crime data from 2010-2022 which
+includes crimes reported in different areas of DC with information such as
+report date, type of offense, location of crime incident, and time of event. 
+From this data, we created two datasets: crime_data_total, which includes DC crime
+incidents reported from 2019 - 2022, and crime_data_2010s, which includes DC crime
+incidents reported from 2010 - 2019.
 
 ```{r}
 #Load in data
@@ -105,7 +123,22 @@ crime_data_2010s <- rbind(crime_data_2010s, crime_data10)
 ```
 
 ### Converting Data and Creating Counts of the Number of Crimes
-(Explain converting dates/creating count variable)
+In order to analyze this data, we converted our datasets into four different
+datasets:
+
+crime_data_total_2: We separated and converted the crime incident report date
+into a 'Date' classification using our "crime_data_total" dataset.  
+
+crime_data_2010s_2: We separated and converted the crime incident report date
+into a 'Date' classification using our "crime_data_2010s" dataset. 
+
+crime_count: We filtered, grouped, and summarized our "crime_data_total_2" 
+dataset to create a dataset with the number of crimes reported in January,
+February, and March in the years 2019 to 2022.
+
+crime_graph_data: We grouped and summarized our "crime_data_total_2" to create
+a dataset counting the number of crimes reported by date from 2019 to 2022.
+
 
 ```{r}
 crime_data_total_2 <- crime_data_total %>%
@@ -152,10 +185,18 @@ crime_count_2010s <- crime_data_2010s_2 %>%
 
 ### Exploratory Analysis of Crime in DC Between 2019 and 2022
 
-[Explain graph]
+The bar chart below visualizes number of crimes reported in each ward by type of 
+offense in Washington, DC from 2019 to 2022. We also provide a map of DC's 8 wards
+below for reference.
+
+![DC.gov: Wards of the District of Columbia](dc_wards.png)
+
+Based on the visualization below, arson, homicide, and sex abuse are the least 
+commonly reported crimes, while theft is the most common. The ward with the highest
+overall crime counts is Ward 2, where Georgetown University is located.  
 
 ```{r}
-#Type of Crime Committed by Crime Count (per Day) 
+#Type of Crime Committed by Crime Count
 crime_data_total_2 %>%
   filter(!is.na(ward)) %>%
   ggplot(aes(offense, fill = ward)) +
@@ -164,16 +205,20 @@ crime_data_total_2 %>%
     title = "Number of Crimes by Type of Offense in Washington, DC (2019 - 2022)",
     subtitle = "By Ward",
     x = "Type of Criminal Offense",
-    y = "Crime Count (per Day)",
+    y = "Crime Count",
     fill = "Ward",
-    caption = "[Dataset Name]"
-  )
+    caption = "Open Data DC. Crime Incidents in years 2019 to 2022."
+  ) + 
+  theme(axis.text.x=element_text(angle=45,hjust=1))
 ```
 
-[Explain graph]
+The bar chart below visualizes number of crimes reported in all of DC from 
+2019 to 2022 based on the shift time (Day, Evening, Midnight) the crime was 
+reported. Based on the visualization, the evening shift has the most reported crimes
+and the midnight shift has the least. 
 
 ```{r}
-# Shift Crime Report by Crime Count (per Day)
+# Shift Crime Report by Crime Count 
 crime_data_total_2 %>%
   filter(!is.na(ward)) %>%
   ggplot(aes(shift)) +
@@ -181,12 +226,15 @@ crime_data_total_2 %>%
   labs(
     title = "Number of Crimes by Shift in Washington, DC (2019 - 2022)",
     x = "Shift Crime Reported",
-    y = "Crime Count (per Day)",
-    caption = "[Dataset Name]"
+    y = "Crime Count",
+    caption = "Open Data DC. Crime Incidents in years 2019 to 2022."
   )
 ```
 
-[Explain graph]
+The 4 bar charts below reflect the number of crimes in Washington, DC by ward 
+for the months January to March in the years 2019, 2020, 2021, and 2022. Overall, 
+crimes vastly decreased during the pandemic years (2021-2022) compared to pre-pandemic 
+ones (2019-2020).
 
 ```{r}
 #Number of crimes in January Through March
@@ -200,18 +248,21 @@ crime_count %>%
     subtitle = "By Ward",
     x = "Ward",
     y = "Number of Crimes",
-    caption = "[Dataset Name]"
+    caption = "Open Data DC. Crime Incidents in years 2019 to 2022."
   ) + 
   scale_fill_discrete(name = "Ward") +
   theme(panel.spacing = unit(2, "lines"),
         strip.text = element_text(size = 13))
+
 ```
 
-[Explain graphs]
+The scatter plots below visualize crime counts in all of DC during the Holiday 
+season (November to January) from 2019 to 2022. In both scatter plots, 
+Thanksgiving, Christmas Eve, and Christmas Day have low crime counts than other days. 
+However, the days surrounding these holidays differ in crime count between 2020-2021 and 
+2021-2022 with some crime significantly increasing after one of the holidays.
 
 ```{r}
-crime_graph_data <- left_join(crime_graph_data, holidays, by = "date2")
-
 #Crime Count during the Holidays (2020 - 2021) 
 crime_graph_data %>%
   filter("2020-11-14" < date2) %>%
@@ -222,13 +273,13 @@ crime_graph_data %>%
     x = "Date",
     y = "Number of Crimers (per day) ",
     title = "Crime Count during the Holidays in Washington, DC (Nov 2020 - Jan 2021)",
-    caption = "[Dataset Name]"
+    caption = "Open Data DC. Crime Incidents in years 2019 to 2022."
   ) +
  scale_x_date(breaks = "5 days",
              date_labels = "%b %d %Y") + 
   theme(legend.position="none") 
 
- 
+
 #Crime Count during the Holidays (2021 - 2022)
 crime_graph_data %>%
   filter("2021-11-15" < date2) %>%
@@ -239,17 +290,20 @@ crime_graph_data %>%
     x = "Date",
     y = "Number of Crimers (per day) ",
     title = "Crime Count during the Holidays in Washington, DC (Nov 2021 - Jan 2022)",
-    caption = "[Dataset Name]"
+    caption = "Open Data DC. Crime Incidents in years 2019 to 2022."
   ) + 
  scale_x_date(breaks = "5 days",
              date_labels = "%b %d %Y") + 
   theme(legend.position="none")
-
 ```
 
 ### Exploratory Analysis of Crime in DC Between 2010 and 2019
 
-[Explain graph]
+The animated bar graph explores the number of crimes reported by ward from the 
+years 2010 to 2019. Over the past decade, crime rates varied year by year. In 2016,
+mostly all of DC's wards significantly increased in crimes reported compared to 
+the other years. Additionally, Ward 2 was consistently the highest in crimes reported 
+from 2010 to 2019. 
 
 ```{r}
 #Animated plot for change in crime over time
@@ -261,7 +315,7 @@ crime_over_time <- crime_count_2010s %>%
     subtitle = "By Ward",
     x = "Ward",
     y = "Number of Crimes",
-    caption = "[Dataset Name]",
+    caption = "Open Data DC. Crime Incidents in years 2010 to 2019.",
   ) + 
   scale_fill_discrete(name = "Ward") +
   transition_time(as.integer(year)) +
@@ -272,10 +326,18 @@ animate(crime_over_time, nframes = 10, duration = 10, fps = 1, width = 400, heig
 #anim_save("crime_over_time_gif.gif")
 ```
 
-[Explain graph]
+To further explore crimes reported in DC from 2010 to 2019, we conducted 
+geospatial analysis using Open Data DC crime data, DC Census Tracts Data, and
+DC Police Station data. 
+
 ```{r}
-# Reading in DC Tracts data
-dctracts <- st_read("Census_Tracts_in_2010.geojson") %>%
+# Read in DC census tracts data
+dctracts <- st_read("data/Census_Tracts_in_2010.geojson") %>%
+  st_set_crs(value = 4326) %>%
+  clean_names()
+
+#Read in Police stations data
+policestations <- st_read("data/Police_Stations.geojson") %>%
   st_set_crs(value = 4326) %>%
   clean_names()
 
@@ -298,7 +360,8 @@ pop_map <- ggplot() +
   scale_fill_gradient(low = "blue",
                       high = "red") +
   labs(title = "Tract population in 2019",
-       caption = "[Dataset Name]") +
+       fill = "Population",
+       caption = "Open Data DC. Updated 2021. Census Tracts in 2010.") +
   theme_void()
 
 crimerate_map <- ggplot() +
@@ -310,7 +373,8 @@ crimerate_map <- ggplot() +
   scale_fill_gradient2() +
   facet_wrap(~year) +
   labs(title = "Crime rate in census tracts by year",
-       caption = "[Dataset Name]") +
+       fill = "Crime Rate",
+       caption = "Open Data DC. Updated 2021. Census Tracts in 2010. & Open Data DC. Crime Incidents in years 2019 to 2022.") +
   theme_void()
 
 crime_police21 <- ggplot() +
@@ -327,15 +391,39 @@ crime_police21 <- ggplot() +
     data = policestations,
     color = "blue"
   ) +
+  labs(
+    title = "Number of Crimes Reported and Police Stations in DC in 2021",
+    caption = "Open Data DC. Updated 2021. Census Tracts in 2010; Open Data DC. Crime Incidents in years 2019 to 2022; Open Data DC. Updated 2021. Police Stations."
+  ) +
   theme_void()
+```
 
+Using DC Census Tract Data and Open Data DC data, the map below illustrates
+the population by census tract in all of DC in 2019. 
+
+```{r}
 pop_map
+```
 
+The maps illustrated below reflect the crime rate by tract in the years 2019 to 
+2022. According to the maps, the crime rate decreased in 2021 and 2022 compared
+to 2019 and 2022. 
+
+```{r}
 crimerate_map
+```
 
+The map below visualizes crimes reported in DC in 2021 (light pink) and the 
+location of police stations (blue). We can see that there are more police 
+stations in high-crime reported areas. 
+
+```{r}
 crime_police21
 ```
 
-
+Based the data visualizations above, crime decreased overall during the 
+pandemic, which is most likely due to the pandemic shutdowns that took place in 
+2020 and the slow reopening/use of of shops, restaurants, workplaces, and 
+transit in 2021 and 2022.
 
 
