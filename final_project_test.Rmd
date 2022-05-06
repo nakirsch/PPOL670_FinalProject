@@ -103,10 +103,9 @@ crime_data_total <- crime_data_2010s %>%
          month = month(date))
 
 dctracts <- st_read("Census_Tracts_in_2010.geojson") %>%
-  st_set_crs(value = 4326) %>%
   clean_names()
 
-crime_merged <- st_join(dctracts, crime_data_total_2, join = st_contains, left = TRUE) 
+crime_merged <- st_join(dctracts, crime_data_total %>% filter(year < 2020), join = st_contains, left = TRUE) 
 
 crime_merged_agg <- crime_merged %>%
   group_by(tract, year) %>%
@@ -287,7 +286,7 @@ acs <- bind_rows(acs, acs_2011)
 acs <- bind_rows(acs, acs_2010)
 acs <- bind_rows(acs, acs_2020)
 
-write.csv(acs, file = "acs_merged")
+write.csv(acs, file = "acs_merged.csv")
 
 ```
 
@@ -296,8 +295,6 @@ write.csv(acs, file = "acs_merged")
 ```{r}
 
 # VISUALIZATIONS AND GEOSPATIAL ANALYSIS
-
-crime_merged_agg <- read_csv("data/crime_merged_agg.csv")
 
 dctracts <- st_read("Census_Tracts_in_2010.geojson") %>%
   st_set_crs(value = 4326) %>%
@@ -353,7 +350,7 @@ crime_police21
 
 crime_merged_agg <- read_csv("data/crime_merged_agg.csv")
 
-acs_merged <- read_csv("data/acs_merged")
+acs_merged <- read_csv("data/acs_merged.csv")
 
 crime_acs_merged <- left_join(crime_merged_agg %>% st_drop_geometry() %>% filter(year < 2020), 
                               acs_merged %>% filter(year < 2020), 
