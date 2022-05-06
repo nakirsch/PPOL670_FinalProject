@@ -1,0 +1,308 @@
+---
+title: "Predictive Modeling"
+author: "Lucas Fox, Nathalie Kirsch, Vanaaisha Pamnani, and Cuong Pham Vu"
+date: "4/18/2022"
+output: html_document
+urlcolor: blue
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+```{r include = FALSE}
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+})
+```
+
+### PPOL 670 | Final Project
+
+This assignment is stored on the following [Github repository](https://github.com/nakirsch/PPOL670_FinalProject). This markdown file includes code for predictive modeling and principal components analysis.
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(tidymodels)
+library(ggplot2)
+library(patchwork)
+library(httr)
+library(jsonlite)
+library(sf)
+library(janitor)
+library(lubridate)
+library(stringr)
+library(factoextra)
+
+
+theme_set(theme_minimal())
+```
+
+
+``` {r}
+
+crime_merged_agg <- read_csv("crime_merged_agg.csv", show_col_types = FALSE) %>%
+  select(-"...1")
+
+acs_merged <- read_csv("acs_merged.csv", show_col_types = FALSE) %>%
+  select(-"...1")
+
+crime_acs_merged <- left_join(crime_merged_agg %>% filter(year < 2020), 
+                              acs_merged %>% filter(year < 2020), 
+                              by = c("tract","year"))
+
+crime_acs_numeric <- crime_acs_merged %>% 
+  select_if(is.numeric) %>%
+  select(-contains(c("PM","M","PE"))) %>%
+  ungroup()
+
+crime_acs_numeric <- crime_acs_numeric %>%
+  select_if(~ !any(is.na(.)))
+
+```
+
+
+
+```{r}
+
+# LASSO MODEL PREDICTING CRIME COUNT WITH ALL PREDICTORS
+
+set.seed(20220503)
+
+crime_split <- initial_split(data = crime_acs_numeric %>% select(-year, - GEOID), prop = 0.8)
+
+crime_train <- training(x = crime_split)
+
+crime_test <- testing(x = crime_split)
+
+crime_rec <- recipe(count ~ ., data = crime_train) %>%
+  step_scale(all_predictors()) %>%
+  step_center(all_predictors())
+
+folds <- vfold_cv(data = crime_train, v = 10, repeats = 10)
+
+lasso_grid <- grid_regular(penalty(), levels = 10)
+
+lasso_mod <- linear_reg(
+  penalty = tune(),
+  mixture = 1) %>%
+  set_engine("glmnet", path_values = lasso_grid$penalty)
+
+lasso_wf <- workflow() %>%
+  add_recipe(crime_rec)%>%
+  add_model(lasso_mod)
+
+get_glmnet_coefs <- function(x) {
+  
+  x %>% 
+    extract_fit_engine() %>% 
+    tidy(return_zeros = TRUE) %>% 
+    rename(penalty = lambda)
+  
+}
+
+parsnip_ctrl <- control_grid(extract = get_glmnet_coefs)
+
+lasso_cv <- lasso_wf %>%
+  tune_grid(
+    resamples = folds,
+    grid = lasso_grid,
+    control = parsnip_ctrl
+  )
+
+bind_rows(
+  LASSO = show_best(lasso_cv, n = 1),
+  .id = "model"
+)
+
+lasso_coefs <- 
+  lasso_cv %>% 
+  select(id, .extracts) %>% 
+  unnest(.extracts) %>% 
+  select(id, .extracts) %>% 
+  unnest(.extracts) %>%
+  group_by(id, term, penalty) %>%
+  slice(1) %>%
+  ungroup()
+
+
+lasso_best <- lasso_cv %>% select_best("rmse")
+
+lasso_final <- finalize_workflow(
+  lasso_wf,
+  parameters = lasso_best
+)
+
+lasso_fit <- lasso_final %>%
+  fit(data = crime_train)
+
+predictions <- bind_cols(
+    crime_test,
+    predict(object = lasso_fit, new_data = crime_test)
+)
+
+
+rmse(data = predictions, truth = count, estimate = .pred)
+
+predictions <- bind_cols(
+    crime_acs_numeric,
+    predict(object = lasso_fit, new_data = crime_acs_numeric)
+)
+
+rmse(data = predictions, truth = count, estimate = .pred)
+
+predictions %>%
+  group_by(year) %>% 
+  summarize(actual = sum(count),
+            predicted = sum(.pred))
+
+tidy(lasso_fit) %>%
+  filter(estimate != 0)
+
+```
+
+Our model has an RMSE an RMSE of 110 on the testing data and an RMSE of 98.6 crimes on the full dataset
+
+
+```{r}
+
+# LASSO MDOEL PREDICTING CRIME COUNT WITH SELECTED PREDICTORS
+
+crimes_acs_main  <- crime_acs_merged %>%
+  select(DP02_0059PE, DP02_0060PE, DP02_0061PE, DP02_0062PE, DP02_0063PE, DP02_0064PE, DP02_0065PE, DP02_0066PE, DP02_0067PE, DP02_0068PE, DP05_0037PE, DP05_0038PE, DP05_0039PE, DP05_0044PE, DP05_0052PE, DP05_0058PE, DP03_0086E, DP02_0016E, DP02_0017E, DP02_0002PE, DP02_0010PE, year, count, population)
+
+crimes_acs_2019 <- crime_acs_merged %>%
+  filter(year == 2019) %>%
+  select(DP02_0059PE, DP02_0060PE, DP02_0061PE, DP02_0062PE, DP02_0063PE, DP02_0064PE, DP02_0065PE, DP02_0066PE, DP02_0067PE, DP02_0068PE, DP05_0037PE, DP05_0038PE, DP05_0039PE, DP05_0044PE, DP05_0052PE, DP05_0058PE, DP03_0086E, DP02_0016E, DP02_0017E, DP02_0002PE, DP02_0010PE, year, count, population)
+
+crimes_acs_2020 <- crime_acs_merged %>%
+  filter(year == 2020) %>%
+  select(DP02_0059PE, DP02_0060PE, DP02_0061PE, DP02_0062PE, DP02_0063PE, DP02_0064PE, DP02_0065PE, DP02_0066PE, DP02_0067PE, DP02_0068PE, DP05_0037PE, DP05_0038PE, DP05_0039PE, DP05_0044PE, DP05_0052PE, DP05_0058PE, DP03_0086E, DP02_0016E, DP02_0017E, DP02_0002PE, DP02_0010PE, year, count, population)
+
+
+crimes_acs_main <- crimes_acs_main %>%
+  select_if(is.numeric) %>%
+  ungroup() %>%
+  select_if(~ !any(is.na(.)))
+ 
+crimes_acs_2020 <- crimes_acs_2020 %>%
+  select_if(is.numeric) %>%
+  ungroup()
+
+crimes_acs_2019 <- crimes_acs_2019 %>%
+  select_if(is.numeric) %>%
+  ungroup()
+
+crimemain_split <- initial_split(data = crimes_acs_main  %>% select(-year), prop = 0.8)
+
+crimemain_train <- training(x = crimemain_split)
+
+crimemain_test <- testing(x = crimemain_split)
+
+crimemain_rec <- recipe(count ~ ., data = crimemain_train) %>%
+  step_scale(all_predictors()) %>%
+  step_center(all_predictors())
+
+folds1 <- vfold_cv(data = crimemain_train, v = 10, repeats = 5)
+
+lassomain_grid <- grid_regular(penalty(), levels = 10)
+
+lassomain_mod <- linear_reg(
+  penalty = tune(),
+  mixture = 1) %>%
+  set_engine("glmnet", path_values = lasso_grid$penalty)
+
+lassomain_wf <- workflow() %>%
+  add_recipe(crimemain_rec)%>%
+  add_model(lassomain_mod)
+
+lassomain_cv <- lassomain_wf %>%
+  tune_grid(
+    resamples = folds1,
+    grid = lasso_grid,
+    control = parsnip_ctrl
+  )
+
+bind_rows(
+  LASSO = show_best(lassomain_cv, n = 1),
+  .id = "model"
+)
+
+lassomain_coefs <-
+  lassomain_cv %>%
+  select(id, .extracts) %>%
+  unnest(.extracts) %>%
+  select(id, .extracts) %>%
+  unnest(.extracts) %>%
+  group_by(id, term, penalty) %>%
+  slice(1) %>%
+  ungroup()
+
+lassomain_best <- lassomain_cv %>% select_best("rmse")
+
+lassomain_final <- finalize_workflow(
+  lassomain_wf,
+  parameters = lassomain_best
+)
+
+lassomain_fit <- lassomain_final %>%
+  fit(data = crimemain_train)
+
+predictions_main <- bind_cols(
+    crimemain_test,
+    predict(object = lassomain_fit, new_data = crimemain_test)
+)
+
+rmse(data = predictions, truth = count, estimate = .pred)
+
+predictions19_main <- bind_cols(
+    crimes_acs_main %>% select_if(~ !any(is.na(.))),
+    predict(object = lassomain_fit, new_data = crimes_acs_main %>% select_if(~ !any(is.na(.)))
+            )
+)
+
+rmse(data = predictions19_main, truth = count, estimate = .pred)
+
+predictions19_main %>%
+  group_by(year) %>%
+  summarize(actual = sum(count),
+            predicted = sum(.pred))
+
+tidy(lassomain_fit) %>%
+  filter(estimate != 0)
+```
+
+The only variables with explanatory power is Percent of population 25 years or older with a bachelor's degree, Percent of population that identifies having two or more races, and Tract population in 2010. In total, the model with selected variables have an RMSE of 110 on the testing data and an RMSE of 149 on the full dataset.
+
+```{r}
+
+#PCA ANALYSIS (NOT SURE ABOUT THIS)
+
+crime_pca <- prcomp(crime_acs_numeric %>% select(-year, -count, -GEOID))
+
+pca_data <- as_tibble(crime_pca$x) %>%
+  select(PC1, PC2)
+
+tract_pca <- bind_cols(
+  crime_acs_merged, 
+  select(pca_data, PC1, PC2)
+)
+
+ggplot() +
+  geom_point(
+    data = tract_pca, 
+    mapping = aes(x = PC1, y = PC2, color = population),
+    alpha = 0.5
+  ) +
+  facet_wrap(~year) +
+  theme_minimal() +
+  labs(
+    title = "PC1 And PC2 Captures Clear Relationships Across Years",
+  )
+
+```
