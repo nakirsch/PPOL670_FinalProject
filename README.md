@@ -40,10 +40,10 @@ Our code is distributed across 3 files:
 1.data_visualizations.Rmd: code for all libraries, original datasets, and 
 cleaned datasets for our data visualizations and, code for all of our data visualizations. 
 
-3.data_wrangling.Rmd: code for all libraries, original ACS data, and
+2.data_wrangling.Rmd: code for all libraries, original ACS data, and
 cleaned ACS data for our predictive model.
 
-4.predictive_modeling.Rmd: [ADD TEXT] 
+3.predictive_modeling.Rmd: [ADD TEXT] 
 
 For our data visualizations, download and run the file, data_visualizations.Rmd.
 To run our predictive model, first download and run the file, data_wrangling.Rmd
