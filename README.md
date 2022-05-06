@@ -21,19 +21,20 @@ Our folder contains:
 1.data_visualizations.Rmd
 2.data_visualizations.html
 3.data_wrangling.Rmd
-4.data_wrangling.html
-5.predictive_modeling.Rmd
-6.predictive_modeling.html
-3.final_project.Rproj
-4. README.md
-5. .gitignore
-6.  A 'data' folder containing these files below downloaded from Open Data DC,
+4.predictive_modeling.Rmd
+5.predictive_modeling.html
+6.final_project.Rproj
+7. README.md
+8. .gitignore
+9.  A 'data' folder containing these files below downloaded from Open Data DC,
 DC Census Tracts Data, DC Police Station data, and American Community Survey 
 5-Year Data:
   a. Census_Tracts_in_2010.geojson
   b. Crime_Incidents_in[2010 - 2022].geojson (12 .geojson files)
   c. Police_Stations.geojson
   d. acs_merged.csv
+  e. crime_merged_agg.csv
+  f. crime_merrged_agg.geojson
 
 Instructions: 
 Our code is distributed across 3 files:
@@ -41,11 +42,11 @@ Our code is distributed across 3 files:
 cleaned datasets for our data visualizations and, code for all of our data visualizations. 
 
 2.data_wrangling.Rmd: code for all libraries, original ACS data, and
-cleaned ACS data for our predictive model.
+cleaned ACS data for our predictive model. Creates csv files that the predictive modeling Rmd uses. We did this to reduce the time it takes us to process the data in each individual Rmd. 
 
-3.predictive_modeling.Rmd: [ADD TEXT] 
+3.predictive_modeling.Rmd: code for our lasso predicted model and principal components analysis, that identified specific demographic variables from ACS data that were correlated with crime count per census tract. The first two principal components in our analysis explained ~70% of the variation in the data.
 
-For our data visualizations, download and run the file, data_visualizations.Rmd.
+For our data visualizations, first download and run the file, data_wrangling.Rmd, then download and run the file, data_visualizations.Rmd.
 To run our predictive model, first download and run the file, data_wrangling.Rmd
 and then download and run predictive_modeling.Rmd.
 
