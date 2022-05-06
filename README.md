@@ -18,25 +18,36 @@ to crime in DC both pre and post pandemic, informing policy makers on potential
 ways to address crimes in DC. 
 
 Our folder contains:
-1. [DATA VISUALIZATIONS FILE]
-2. [PREDICTIVE MODEL FILE]
-3. final_project.Rproj
-3. README.md
-4. .gitignore
-5.  A 'data' folder containing these files below downloaded from Open Data DC,
+1.data_visualizations.Rmd
+2.data_visualizations.html
+3.data_wrangling.Rmd
+4.data_wrangling.html
+5.predictive_modeling.Rmd
+6.predictive_modeling.html
+3.final_project.Rproj
+4. README.md
+5. .gitignore
+6.  A 'data' folder containing these files below downloaded from Open Data DC,
 DC Census Tracts Data, DC Police Station data, and American Community Survey 
 5-Year Data:
   a. Census_Tracts_in_2010.geojson
   b. Crime_Incidents_in[2010 - 2022].geojson (12 .geojson files)
   c. Police_Stations.geojson
-  d. [ACS DATA]
-
+  d. acs_merged.csv
 
 Instructions: 
-Our code is split into two categories: data visualizations of DC crime data and 
-our predictive model to predict number of crimes in DC in a given year. To 
-create our data visualizations, run code from [FILE]. To run our predictive
-model, run code from [FILE]. 
+Our code is distributed across 3 files:
+1.data_visualizations.Rmd: code for all libraries, original datasets, and 
+cleaned datasets for our data visualizations and, code for all of our data visualizations. 
+
+3.data_wrangling.Rmd: code for all libraries, original ACS data, and
+cleaned ACS data for our predictive model.
+
+4.predictive_modeling.Rmd: [ADD TEXT] 
+
+For our data visualizations, download and run the file, data_visualizations.Rmd.
+To run our predictive model, first download and run the file, data_wrangling.Rmd
+and then download and run predictive_modeling.Rmd.
 
 All libraries needed are included in the code, but installing these packages may
 still be required. 
