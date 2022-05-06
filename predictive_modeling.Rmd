@@ -1,7 +1,7 @@
 ---
 title: "Predictive Modeling"
 author: "Lucas Fox, Nathalie Kirsch, Vanaaisha Pamnani, and Cuong Pham Vu"
-date: "4/18/2022"
+date: "5/6/2022"
 output: html_document
 urlcolor: blue
 editor_options: 
@@ -141,6 +141,8 @@ lasso_final <- finalize_workflow(
 lasso_fit <- lasso_final %>%
   fit(data = crime_train)
 
+#Calculating RMSE on testing data
+
 predictions <- bind_cols(
     crime_test,
     predict(object = lasso_fit, new_data = crime_test)
@@ -154,7 +156,11 @@ predictions <- bind_cols(
     predict(object = lasso_fit, new_data = crime_acs_numeric)
 )
 
+#Caluclating RMSE on full dataset
+
 rmse(data = predictions, truth = count, estimate = .pred)
+
+# Predictions by year
 
 predictions %>%
   group_by(year) %>% 
@@ -166,12 +172,12 @@ tidy(lasso_fit) %>%
 
 ```
 
-Our model has an RMSE an RMSE of 110 on the testing data and an RMSE of 98.6 crimes on the full dataset
+Our model has an RMSE of 110 on the testing data and an RMSE of 98.6 crimes on the full dataset
 
 
 ```{r}
 
-# LASSO MDOEL PREDICTING CRIME COUNT WITH SELECTED PREDICTORS
+# LASSO MODEL PREDICTING CRIME COUNT WITH SELECTED PREDICTORS
 
 crimes_acs_main  <- crime_acs_merged %>%
   select(DP02_0059PE, DP02_0060PE, DP02_0061PE, DP02_0062PE, DP02_0063PE, DP02_0064PE, DP02_0065PE, DP02_0066PE, DP02_0067PE, DP02_0068PE, DP05_0037PE, DP05_0038PE, DP05_0039PE, DP05_0044PE, DP05_0052PE, DP05_0058PE, DP03_0086E, DP02_0016E, DP02_0017E, DP02_0002PE, DP02_0010PE, year, count, population)
@@ -258,6 +264,8 @@ predictions_main <- bind_cols(
     predict(object = lassomain_fit, new_data = crimemain_test)
 )
 
+# Calculating RMSE for testing data
+
 rmse(data = predictions, truth = count, estimate = .pred)
 
 predictions19_main <- bind_cols(
@@ -266,7 +274,11 @@ predictions19_main <- bind_cols(
             )
 )
 
+# Calculating RMSE for full dataset
+
 rmse(data = predictions19_main, truth = count, estimate = .pred)
+
+# Predictions by year
 
 predictions19_main %>%
   group_by(year) %>%
@@ -277,11 +289,11 @@ tidy(lassomain_fit) %>%
   filter(estimate != 0)
 ```
 
-The only variables with explanatory power is Percent of population 25 years or older with a bachelor's degree, Percent of population that identifies having two or more races, and Tract population in 2010. In total, the model with selected variables have an RMSE of 110 on the testing data and an RMSE of 149 on the full dataset.
+The only variables with explanatory power are percent of population 25 years or older with a bachelor's degree, percent of population that identifies having two or more races, and tract population in 2010. In total, the model with selected variables has an RMSE of 110 on the testing data and an RMSE of 149 on the full dataset.
 
 ```{r}
 
-#PCA ANALYSIS (NOT SURE ABOUT THIS)
+#PCA ANALYSIS
 
 crime_pca <- prcomp(crime_acs_numeric %>% select(-year, -count, -GEOID))
 
@@ -302,7 +314,6 @@ ggplot() +
   facet_wrap(~year) +
   theme_minimal() +
   labs(
-    title = "PC1 And PC2 Captures Clear Relationships Across Years",
+    title = "PC1 And PC2 Capture Clear Relationships Across Years",
   )
-
 ```
