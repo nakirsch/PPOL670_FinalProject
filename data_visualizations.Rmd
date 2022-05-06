@@ -1,6 +1,6 @@
 ---
 title: "Final Project"
-author: "Vanaaisha and Nathalie"
+author: "Lucas Fox, Nathalie Kirsch, Vanaaisha Pamnani, Cuong Pham Vu"
 date: "5/6/2022"
 output: html_document
 urlcolor: blue
@@ -58,12 +58,12 @@ theme_set(theme_minimal())
 
 ### Creating Datasets on Crime Incidents
 The geojson files come from Open Data DC, the District of Columbia's open source
-database. From this database, we gathered DC crime data from 2010-2022 which
+database. From this database, we gathered DC crime data from 2010 to 2022 which
 includes crimes reported in different areas of DC with information such as
 report date, type of offense, location of crime incident, and time of event. 
 From this data, we created two datasets: crime_data_total, which includes DC crime
-incidents reported from 2019 - 2022, and crime_data_2010s, which includes DC crime
-incidents reported from 2010 - 2019.
+incidents reported from 2019 to 2022, and crime_data_2010s, which includes DC crime
+incidents reported from 2010 to 2019.
 
 ```{r}
 #Load in data
@@ -244,7 +244,7 @@ crime_count %>%
   facet_wrap(~year) + 
   geom_text(aes(label = count, vjust = -0.25)) +
   labs (
-    title = "Number of Crimes in in Washington, DC (January Through March of 2019 to 2022)",
+    title = "Number of Crimes in in Washington, DC \(January through March of 2019 to 2022)",
     subtitle = "By Ward",
     x = "Ward",
     y = "Number of Crimes",
@@ -359,7 +359,7 @@ pop_map <- ggplot() +
 ) +
   scale_fill_gradient(low = "blue",
                       high = "red") +
-  labs(title = "Tract population in 2019",
+  labs(title = "Tract Population in 2019",
        fill = "Population",
        caption = "Open Data DC. Updated 2021. Census Tracts in 2010.") +
   theme_void()
@@ -372,7 +372,7 @@ crimerate_map <- ggplot() +
 ) +
   scale_fill_gradient2() +
   facet_wrap(~year) +
-  labs(title = "Crime rate in census tracts by year",
+  labs(title = "Crime Rate in Census Tracts by Year",
        fill = "Crime Rate",
        caption = "Open Data DC. Updated 2021. Census Tracts in 2010. \
        Open Data DC. Crime Incidents in years 2019 to 2022.") +
