@@ -1,0 +1,233 @@
+---
+title: "final_project_data_sets"
+author: "Lucas Fox, Nathalie Kirsch, Vanaaisha Pamnani, Cuong Pham Vu"
+date: "5/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(tidymodels)
+library(ggplot2)
+library(patchwork)
+library(httr)
+library(jsonlite)
+library(sf)
+library(janitor)
+library(lubridate)
+library(stringr)
+library(factoextra)
+library(geojsonio)
+
+```
+
+
+```{r}
+
+crime_data22 <- st_read("data/Crime_Incidents_in_2022.geojson") %>%
+  clean_names()
+crime_data21 <- st_read("data/Crime_Incidents_in_2021.geojson") %>%
+  clean_names()
+crime_data20 <- st_read("data/Crime_Incidents_in_2020.geojson") %>%
+  clean_names()
+crime_data19 <- st_read("data/Crime_Incidents_in_2019.geojson") %>%
+  clean_names()
+crime_data18 <- st_read("data/Crime_Incidents_in_2018.geojson") %>%
+  clean_names()
+crime_data17 <- st_read("data/Crime_Incidents_in_2017.geojson") %>%
+  clean_names()
+crime_data16 <- st_read("data/Crime_Incidents_in_2016.geojson") %>%
+  clean_names()
+crime_data15 <- st_read("data/Crime_Incidents_in_2015.geojson") %>%
+  clean_names()
+crime_data14 <- st_read("data/Crime_Incidents_in_2014.geojson") %>%
+  clean_names()
+crime_data13 <- st_read("data/Crime_Incidents_in_2013.geojson") %>%
+  clean_names()
+crime_data12 <- st_read("data/Crime_Incidents_in_2012.geojson") %>%
+  clean_names()
+crime_data11 <- st_read("data/Crime_Incidents_in_2011.geojson") %>%
+  clean_names()
+crime_data10 <- st_read("data/Crime_Incidents_in_2010.geojson") %>%
+  clean_names()
+crime_data_2010s <- rbind(crime_data20, crime_data19)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data18)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data17)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data16)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data15)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data14)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data13)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data12)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data11)
+crime_data_2010s <- rbind(crime_data_2010s, crime_data10)
+
+
+crime_data_total <- crime_data_2010s %>%
+  separate(
+    col = report_dat,
+    into = c("date", "time"),
+    sep = " ",
+    remove = TRUE
+  ) %>%
+  mutate(year = year(date),
+         month = month(date))
+dctracts <- st_read("data/Census_Tracts_in_2010.geojson") %>%
+  clean_names()
+crime_merged <- st_join(dctracts, crime_data_total %>% filter(year < 2020), join = st_contains, left = TRUE) 
+crime_merged_agg <- crime_merged %>%
+  group_by(tract, year) %>%
+  summarize(count = n(),
+            population = mean(p0030001),
+            year = mean(year)) %>%
+  mutate(crimerate = count/population*1000)
+
+
+varlist20 <- load_variables(2020, "acs5/profile", cache = TRUE)
+  
+vars20 <- as.character(varlist20$name)
+  
+acs_2020 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars20,
+               year = 2020,
+               output = "wide")
+acs_2020 <- acs_2020 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2020)
+varlist19 <- load_variables(2019, "acs5/profile", cache = TRUE)
+  
+vars19 <- as.character(varlist19$name)
+  
+acs_2019 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars19,
+               year = 2019,
+               output = "wide")
+acs_2019 <- acs_2019 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2019)
+varlist18 <- load_variables(2018, "acs5/profile", cache = TRUE)
+  
+vars18 <- as.character(varlist18$name)
+acs_2018 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars18,
+               year = 2018,
+               output = "wide")
+acs_2018 <- acs_2018 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2018)
+varlist17 <- load_variables(2017, "acs5/profile", cache = TRUE)
+  
+vars17 <- as.character(varlist17$name)
+acs_2017 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars17,
+               year = 2017,
+               output = "wide")
+acs_2017 <- acs_2017 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2017)
+varlist16 <- load_variables(2016, "acs5/profile", cache = TRUE)
+  
+vars16 <- as.character(varlist16$name)
+acs_2016 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars16,
+               year = 2016,
+               output = "wide")
+acs_2016 <- acs_2016 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2016)
+varlist15 <- load_variables(2015, "acs5/profile", cache = TRUE)
+  
+vars15 <- as.character(varlist15$name)
+acs_2015 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars15,
+               year = 2015,
+               output = "wide")
+acs_2015 <- acs_2015 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2015)
+varlist14 <- load_variables(2014, "acs5/profile", cache = TRUE)
+  
+vars14 <- as.character(varlist14$name)
+acs_2014 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars14,
+               year = 2014,
+               output = "wide")
+acs_2014 <- acs_2014 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2014)
+varlist13 <- load_variables(2013, "acs5/profile", cache = TRUE)
+  
+vars13 <- as.character(varlist13$name)
+acs_2013 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars13,
+               year = 2013,
+               output = "wide")
+acs_2013 <- acs_2013 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2013)
+varlist12 <- load_variables(2012, "acs5/profile", cache = TRUE)
+  
+vars12 <- as.character(varlist12$name)
+acs_2012 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars12,
+               year = 2012,
+               output = "wide")
+acs_2012 <- acs_2012 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2012)
+varlist11 <- load_variables(2011, "acs5/profile", cache = TRUE)
+  
+vars11 <- as.character(varlist11$name)
+acs_2011 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars11,
+               year = 2011,
+               output = "wide")
+acs_2011 <- acs_2011 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2011)
+varlist10 <- load_variables(2010, "acs5/profile", cache = TRUE)
+  
+vars10 <- as.character(varlist10$name)
+acs_2010 <- get_acs(geography = "tract",
+               state = 11,
+               variables = vars10,
+               year = 2010,
+               output = "wide")
+acs_2010 <- acs_2010 %>%
+  mutate(tract = str_sub(GEOID, 6, 11)) %>%
+  mutate(year = 2010)
+
+
+acs <- bind_rows(acs_2019, acs_2018)
+acs <- bind_rows(acs, acs_2017)
+acs <- bind_rows(acs, acs_2016)
+acs <- bind_rows(acs, acs_2015)
+acs <- bind_rows(acs, acs_2014)
+acs <- bind_rows(acs, acs_2013)
+acs <- bind_rows(acs, acs_2012)
+acs <- bind_rows(acs, acs_2011)
+acs <- bind_rows(acs, acs_2010)
+acs <- bind_rows(acs, acs_2020)
+
+geojson_write(crime_merged_agg, file = "crime_merged_agg.geojson")
+write.csv(crime_merged_agg %>%  st_drop_geometry(), file ="crime_merged_agg.csv")
+write.csv(acs, file = "acs_merged.csv")
+
+
+
+```
