@@ -244,7 +244,7 @@ crime_count %>%
   facet_wrap(~year) + 
   geom_text(aes(label = count, vjust = -0.25)) +
   labs (
-    title = "Number of Crimes in in Washington, DC \(January through March of 2019 to 2022)",
+    title = "Number of Crimes in in Washington, DC (January through March of 2019 to 2022)",
     subtitle = "By Ward",
     x = "Ward",
     y = "Number of Crimes",
@@ -342,14 +342,8 @@ policestations <- st_read("data/Police_Stations.geojson") %>%
   clean_names()
 
 # Wrangling to create crime rate, crime count, etc.
-crime_merged <- st_join(dctracts, crime_data_total_2, join = st_contains, left = TRUE)
+crime_merged_agg <- st_read("data/crime_merged_agg.geojson")
 
-crime_merged_agg <- crime_merged %>%
-  group_by(tract, year) %>%
-  summarize(count = n(),
-            population = mean(p0030001),
-            year = mean(year)) %>%
-  mutate(crimerate = count/population*1000)
 
 # Visualizations
 pop_map <- ggplot() +
@@ -408,9 +402,10 @@ the population by census tract in all of DC in 2019.
 pop_map
 ```
 
-The maps illustrated below reflect the crime rate by tract in the years 2019 to 
-2022. According to the maps, the crime rate decreased in 2021 and 2022 compared
-to 2019 and 2022. 
+The maps illustrated below reflect the crime rate by tract in the years 2010 to 
+2019. According to the maps, the distribution of crime rates have remained 
+relatively consistent through the decade. Most crime is concentrated in highly 
+populated tracts in downtown DC. 
 
 ```{r}
 crimerate_map
@@ -418,7 +413,9 @@ crimerate_map
 
 The map below visualizes crimes reported in DC in 2021 (light pink) and the 
 location of police stations (blue). We can see that there are more police 
-stations in high-crime reported areas. 
+stations in high-crime reported areas. We also see that many crimes are
+concentrated on busy roads, namely Connecticut Ave, Wisconsin Ave, and 
+Georgia Ave
 
 ```{r}
 crime_police21
