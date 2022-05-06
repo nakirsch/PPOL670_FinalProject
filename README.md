@@ -39,9 +39,7 @@ DC Census Tracts Data, DC Police Station data, and American Community Survey
 Instructions: 
 Our code is distributed across 3 files:
 1.data_visualizations.Rmd: code for all libraries, original datasets, and 
-cleaned datasets for our data visualizations and, code for all of our data visualizations. 
-
-Note: When we refer to the crime rate, we are using the number of crimes per 1,000 residents. 
+cleaned datasets for our data visualizations and, code for all of our data visualizations. When we refer to the crime rate, we are using the number of crimes per 1,000 residents. 
 
 2.data_wrangling.Rmd: code for all libraries, original ACS data, and
 cleaned ACS data for our predictive model. Creates csv files that the predictive modeling Rmd uses. We did this to reduce the time it takes us to process the data in each individual Rmd. 
